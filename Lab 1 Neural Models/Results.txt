@@ -1,0 +1,40 @@
+PyTorch version: 2.14.1+cpu
+TASK 1 — PROBLEM SPECIFICATION
+X = {(0,0), (0,1), (1,0), (1,1)}; Y = {0,1}; labels = [0,1,1,0] (XOR).
+A single affine map plus sigmoid has a linear decision boundary, so it cannot represent XOR.
+
+TASK 2/3/4A — BINARY XOR (2-2-1, sigmoid hidden, BCEWithLogitsLoss)
+seed=1, Adam lr=0.03, steps=10000, initial_loss=0.70276976, final_loss=0.00001149
+probabilities: [1.558e-05, 0.99998891, 0.99998903, 9.05e-06]
+predicted labels: [0, 1, 1, 0] | target: [0, 1, 1, 0] | correct: True
+first-layer weight-gradient L2 norm at first backward: 0.0043040058
+first-layer weight gradient after training:
+ tensor([[-1.0900e-08, -1.4389e-08],
+        [-1.4177e-07, -1.6387e-07]])
+
+TASK 4C — ZERO-INITIALISATION SYMMETRY
+initial_loss=0.69314718, final_loss=0.69314718
+hidden weight row 1: [0.0, 0.0]
+hidden weight row 2: [0.0, 0.0]
+rows identical: True
+probabilities: [0.5, 0.5, 0.5, 0.5] predictions: [1, 1, 1, 1]
+Explanation: identical hidden units receive identical gradients and remain identical; they cannot learn distinct XOR features.
+
+TASK 4D — ACTIVATION EXPERIMENT (same seed=1, 10000 steps, Adam lr=0.03)
+Activation | final loss | 4/4 correct | early ||grad W1||_2 | probabilities
+sigmoid   | 1.149233e-05 | True | 0.0043040058 | [1.6e-05, 0.999989, 0.999989, 9e-06]
+tanh      | 0.34657902 | False | 0.018582033 | [2e-06, 0.501993, 0.999998, 0.501994]
+relu      | 0.47738576 | False | 0.019310528 | [0.333328, 1.0, 0.333328, 0.333328]
+
+TASK 5 — THREE-CLASS EXTENSION
+architecture: 2 inputs -> 2 hidden units -> 3 logits
+final weight matrix shape: (3, 2) (3, 2)
+number of logits per example: 3
+initial_loss=1.06920040, final_loss=0.00000504
+class order for inputs [(0,0),(0,1),(1,0),(1,1)]: [0,1,1,2]
+input=(0, 0) probabilities=[0.999995, 5e-06, 0.0] sum=1.00000005 predicted_class=0
+input=(0, 1) probabilities=[2e-06, 0.999996, 2e-06] sum=0.99999995 predicted_class=1
+input=(1, 0) probabilities=[2e-06, 0.999996, 2e-06] sum=0.99999991 predicted_class=1
+input=(1, 1) probabilities=[0.0, 6e-06, 0.999994] sum=0.99999999 predicted_class=2
+Softmax sums to one because it divides each exp(logit) by the sum of all exp(logits).
+For cross-entropy with softmax, the gradient w.r.t. each logit is p - one_hot(target).
